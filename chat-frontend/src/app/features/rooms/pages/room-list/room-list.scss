@@ -1,0 +1,57 @@
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  background-color: #1e3c72;
+  color: white;
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .user-greeting {
+    margin-right: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .logout-btn {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.room-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.welcome-card {
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  mat-card-title {
+    color: #1e3c72;
+    margin-bottom: 0.5rem;
+  }
+
+  .user-details {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+
+    code {
+      background-color: #edf2f7;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+  }
+}

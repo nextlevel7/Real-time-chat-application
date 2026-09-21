@@ -1,0 +1,10 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <span>eSewa Realtime Chat</span>
+  <span class="spacer"></span>
+  @if (authService.currentUser(); as user) {
+    <span class="user-greeting"
+      >Welcome, <strong>{{ user.username }}</strong> ({{ user.email }})</span
+    >
+    <button mat-stroked-button color="warn" (click)="onLogout()" class="logout-btn">Log out</button>
+  }
+</mat-toolbar>

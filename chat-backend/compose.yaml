@@ -6,7 +6,7 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
-      DATABASE_URL: postgresql+psycopg://user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/reatimechat
+      DATABASE_URL: postgresql+psycopg://user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/reatimechat_db
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     depends_on:
       db:
@@ -23,7 +23,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d reatimechat"]
+      test: ["CMD-SHELL", "pg_isready -U user -d reatimechat_db"]
       interval: 5s
       timeout: 5s
       retries: 10

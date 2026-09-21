@@ -1,5 +1,7 @@
 from flask import Flask
 
+from app.auth.routes import auth_bp
+from app.common.errors import register_errors
 from app.config import load_config, validate_config
 from app.extensions import cors, db, jwt, migrate
 
@@ -15,9 +17,11 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
+    register_errors(app)
 
     @app.get("/api/health")
     def health():
         return {"status": "ok"}
 
+    app.register_blueprint(auth_bp)
     return app
