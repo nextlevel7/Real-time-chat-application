@@ -5,53 +5,140 @@
   background-color: #1e3c72;
   color: white;
 
+  .brand-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
   .spacer {
     flex: 1 1 auto;
   }
 
   .user-greeting {
-    margin-right: 1.5rem;
+    margin-right: 1.25rem;
     font-size: 0.95rem;
   }
 
   .logout-btn {
     color: white;
-    border-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
   }
 }
 
-.room-container {
-  max-width: 800px;
+.content-container {
+  max-width: 900px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
-.welcome-card {
-  padding: 1rem;
+.card {
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background-color: #ffffff;
+}
 
-  mat-card-title {
+.create-card {
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+
+  .create-form {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: flex-start;
+
+    .room-input {
+      flex: 1;
+    }
+
+    .create-btn {
+      height: 54px;
+      padding: 0 1.5rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.rooms-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
     color: #1e3c72;
-    margin-bottom: 0.5rem;
+  }
+}
+
+.empty-card {
+  padding: 2rem;
+  text-align: center;
+  color: #718096;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+
+.room-item {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  .room-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+
+    .room-name {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .room-meta {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-top: 0.25rem;
+    }
   }
 
-  .user-details {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: #f8fafc;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.95rem;
+  .member-chip {
+    background-color: #def7ec !important;
+    color: #03543f !important;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 
-    code {
-      background-color: #edf2f7;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
+  .guest-chip {
+    background-color: #edf2f7 !important;
+    color: #4a5568 !important;
+    font-size: 0.75rem;
+  }
+
+  .room-actions {
+    margin-top: 1rem;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+
+  &.alert-error {
+    background-color: #fde8e8;
+    color: #9b1c1c;
+    border: 1px solid #f8b4b4;
   }
 }

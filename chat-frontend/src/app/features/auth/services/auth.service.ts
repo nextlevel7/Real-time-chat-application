@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { AuthResponse, LoginPayload, RegisterPayload, User } from '../models/auth.models';
 
-const TOKEN_KEY = 'access_token';
+export const TOKEN_KEY = 'chat_access_token';
 
 function getStorage(): Storage | null {
   if (typeof window !== 'undefined' && window.localStorage) {

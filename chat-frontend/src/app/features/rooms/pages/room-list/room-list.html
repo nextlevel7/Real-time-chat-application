@@ -1,10 +1,90 @@
 <mat-toolbar color="primary" class="app-toolbar">
-  <span>eSewa Realtime Chat</span>
+  <span class="brand-title">eSewa Realtime Chat</span>
   <span class="spacer"></span>
-  @if (authService.currentUser(); as user) {
+  @if (currentUser(); as user) {
     <span class="user-greeting"
-      >Welcome, <strong>{{ user.username }}</strong> ({{ user.email }})</span
+      >Signed in as: <strong>{{ user.username }}</strong></span
     >
     <button mat-stroked-button color="warn" (click)="onLogout()" class="logout-btn">Log out</button>
   }
 </mat-toolbar>
+
+<div class="content-container">
+  @if (errorMessage(); as err) {
+    <div class="alert alert-error">
+      {{ err }}
+    </div>
+  }
+
+  <mat-card class="card create-card">
+    <mat-card-header>
+      <mat-card-title>Create a Room</mat-card-title>
+      <mat-card-subtitle>Start a new discussion room</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="createForm" (ngSubmit)="onCreateRoom()" class="create-form">
+        <mat-form-field appearance="outline" class="room-input">
+          <mat-label>Room name</mat-label>
+          <input matInput formControlName="name" placeholder="e.g. General, Engineering, Support" />
+          @if (createForm.controls.name.hasError('required') && createForm.controls.name.touched) {
+            <mat-error>Room name is required</mat-error>
+          }
+        </mat-form-field>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="create-btn"
+          [disabled]="isLoading() || createForm.invalid"
+        >
+          Create Room
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="rooms-header">
+    <h2>Available Rooms</h2>
+    @if (isLoading()) {
+      <mat-spinner diameter="24"></mat-spinner>
+    }
+  </div>
+
+  @if (rooms().length === 0 && !isLoading()) {
+    <mat-card class="card empty-card">
+      <p>No chat rooms created yet. Be the first to create one!</p>
+    </mat-card>
+  } @else {
+    <div class="rooms-grid">
+      @for (room of rooms(); track room.id) {
+        <mat-card class="card room-item">
+          <mat-card-header class="room-item-header">
+            <div>
+              <mat-card-title class="room-name">{{ room.name }}</mat-card-title>
+              <mat-card-subtitle class="room-meta">
+                Created {{ room.createdAt | date: 'mediumDate' }}
+              </mat-card-subtitle>
+            </div>
+            @if (room.isMember) {
+              <mat-chip-set>
+                <mat-chip class="member-chip" highlighted>Member</mat-chip>
+              </mat-chip-set>
+            } @else {
+              <mat-chip-set>
+                <mat-chip class="guest-chip">Not Joined</mat-chip>
+              </mat-chip-set>
+            }
+          </mat-card-header>
+
+          <mat-card-actions class="room-actions">
+            @if (room.isMember) {
+              <button mat-button color="warn" (click)="onLeave(room.id)">Leave</button>
+            } @else {
+              <button mat-flat-button color="primary" (click)="onJoin(room.id)">Join Room</button>
+            }
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

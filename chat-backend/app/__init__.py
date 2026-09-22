@@ -4,6 +4,7 @@ from app.auth.routes import auth_bp
 from app.common.errors import register_errors
 from app.config import load_config, validate_config
 from app.extensions import cors, db, jwt, migrate
+from app.rooms.routes import rooms_bp
 
 
 def create_app(test_config=None):
@@ -24,4 +25,5 @@ def create_app(test_config=None):
         return {"status": "ok"}
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(rooms_bp)
     return app

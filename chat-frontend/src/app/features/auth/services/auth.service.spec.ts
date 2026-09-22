@@ -4,39 +4,34 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthService } from './auth.service';
 
-class MockStorage implements Storage {
-  private store: Record<string, string> = {};
-  get length(): number {
-    return Object.keys(this.store).length;
-  }
-  clear(): void {
-    this.store = {};
-  }
-  getItem(key: string): string | null {
-    return this.store[key] ?? null;
-  }
-  key(index: number): string | null {
-    return Object.keys(this.store)[index] ?? null;
-  }
-  removeItem(key: string): void {
-    delete this.store[key];
-  }
-  setItem(key: string, value: string): void {
-    this.store[key] = value;
-  }
-}
+const store = new Map<string, string>();
+const mockStorage: Storage = {
+  get length() {
+    return store.size;
+  },
+  clear: () => store.clear(),
+  getItem: (key: string) => store.get(key) ?? null,
+  key: (i: number) => Array.from(store.keys())[i] ?? null,
+  removeItem: (key: string) => {
+    store.delete(key);
+  },
+  setItem: (key: string, val: string) => {
+    store.set(key, val);
+  },
+};
+
+Object.defineProperty(window, 'localStorage', {
+  value: mockStorage,
+  configurable: true,
+  writable: true,
+});
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpTesting: HttpTestingController;
-  let mockStorage: MockStorage;
 
   beforeEach(() => {
-    mockStorage = new MockStorage();
-    Object.defineProperty(window, 'localStorage', {
-      value: mockStorage,
-      writable: true,
-    });
+    mockStorage.clear();
 
     TestBed.configureTestingModule({
       providers: [
