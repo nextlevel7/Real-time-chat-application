@@ -1,0 +1,70 @@
+services:
+  backend:
+    build:
+      context: ./chat-backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      DATABASE_URL: postgresql+psycopg://user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/reatimechat_db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:3000}
+      CASSANDRA_HOSTS: cassandra
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE:-chat}
+    depends_on:
+      db:
+        condition: service_healthy
+      cassandra:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./chat-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: reatimechat_db
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d reatimechat_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  cassandra:
+    image: cassandra:5.0
+    container_name: cassandra
+    environment:
+      CASSANDRA_CLUSTER_NAME: "chat_cluster"
+      CASSANDRA_DC: "datacenter1"
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      MAX_HEAP_SIZE: "512M"
+      HEAP_NEWSIZE: "128M"
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+
+volumes:
+  postgres_data:
+  cassandra_data:

@@ -8,8 +8,9 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev --no-install-project
 
 COPY app ./app
+COPY migrations ./migrations
 RUN useradd --system app
 USER app
 
 EXPOSE 5000
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "app:create_app()"]
+CMD ["sh", "-c", "flask --app 'app:create_app()' db upgrade && exec gunicorn --worker-class gthread --threads 100 --bind 0.0.0.0:5000 --access-logfile - 'app:create_app()'"]
