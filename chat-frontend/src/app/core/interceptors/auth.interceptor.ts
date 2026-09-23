@@ -1,10 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../../features/auth/services/auth.service';
+import { TOKEN_KEY } from '../../features/auth/services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.token();
+  const token =
+    typeof window !== 'undefined' && window.localStorage
+      ? window.localStorage.getItem(TOKEN_KEY)
+      : null;
 
   if (token && req.url.startsWith('/api')) {
     const authReq = req.clone({
