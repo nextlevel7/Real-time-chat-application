@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
+import bcrypt
 from sqlalchemy import DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
 
@@ -45,10 +45,14 @@ class User(db.Model):
     )
 
     def set_password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = bcrypt.hashpw(
+            password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password_hash, password)
+        return bcrypt.checkpw(
+            password.encode("utf-8"), self.password_hash.encode("utf-8")
+        )
 
     def public(self) -> dict:
         return {

@@ -15,6 +15,13 @@ def load_config():
             )
             if origin.strip()
         ],
+        "CASSANDRA_HOSTS": [
+            h.strip()
+            for h in os.environ.get("CASSANDRA_HOSTS", "localhost").split(",")
+            if h.strip()
+        ],
+        "CASSANDRA_KEYSPACE": os.environ.get("CASSANDRA_KEYSPACE", "chat"),
+        "CASSANDRA_PORT": int(os.environ.get("CASSANDRA_PORT", "9042")),
     }
 
 
