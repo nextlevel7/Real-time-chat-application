@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +46,17 @@ export class ChatRoom implements OnInit, OnDestroy {
 
   private readonly subs: Subscription[] = [];
   private typingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    effect(() => {
+      const user = this.currentUser();
+      if (user?.username) {
+        this.activeUsers.update((users) =>
+          users.includes(user.username) ? users : [...users, user.username],
+        );
+      }
+    });
+  }
 
   readonly currentUser = this.authService.currentUser;
   readonly isConnected = this.wsService.isConnected;
@@ -128,8 +139,11 @@ export class ChatRoom implements OnInit, OnDestroy {
         const memberList = res.members || [];
         this.members.set(memberList);
         const currentName = this.currentUser()?.username;
-        const initialActive = currentName ? [currentName] : [];
-        this.activeUsers.set(initialActive);
+        if (currentName) {
+          this.activeUsers.update((users) =>
+            users.includes(currentName) ? users : [...users, currentName],
+          );
+        }
       },
       error: () => {
         // Non-critical member list failure
@@ -157,6 +171,33 @@ export class ChatRoom implements OnInit, OnDestroy {
         }
       }),
 
+      this.wsService.onActiveUsers().subscribe((evt) => {
+        if (evt.roomId === this.roomId && evt.users) {
+          this.activeUsers.set(evt.users);
+          this.members.update((existing) => {
+            const updated = [...existing];
+            for (const username of evt.users) {
+              if (!updated.some((m) => m.username === username)) {
+                updated.push({
+                  id: username,
+                  username,
+                  email: '',
+                  joinedAt: new Date().toISOString(),
+                });
+              }
+            }
+            return updated;
+          });
+          this.roomService.fetchMembers(this.roomId).subscribe({
+            next: (res) => {
+              if (res.members) {
+                this.members.set(res.members);
+              }
+            },
+          });
+        }
+      }),
+
       this.wsService.onUserJoined().subscribe((evt) => {
         if (evt.roomId === this.roomId && evt.username) {
           this.activeUsers.update((users) => {
@@ -164,6 +205,27 @@ export class ChatRoom implements OnInit, OnDestroy {
               return [...users, evt.username];
             }
             return users;
+          });
+          this.members.update((existing) => {
+            if (!existing.some((m) => m.username === evt.username)) {
+              return [
+                ...existing,
+                {
+                  id: evt.username,
+                  username: evt.username,
+                  email: '',
+                  joinedAt: new Date().toISOString(),
+                },
+              ];
+            }
+            return existing;
+          });
+          this.roomService.fetchMembers(this.roomId).subscribe({
+            next: (res) => {
+              if (res.members) {
+                this.members.set(res.members);
+              }
+            },
           });
         }
       }),

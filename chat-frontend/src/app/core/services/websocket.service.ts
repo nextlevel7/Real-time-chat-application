@@ -20,6 +20,11 @@ export interface TypingEvent {
   isTyping: boolean;
 }
 
+export interface ActiveUsersEvent {
+  roomId: string;
+  users: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,6 +37,7 @@ export class WebSocketService {
   private readonly message$ = new Subject<ChatMessage>();
   private readonly userJoined$ = new Subject<UserEvent>();
   private readonly userLeft$ = new Subject<UserEvent>();
+  private readonly activeUsers$ = new Subject<ActiveUsersEvent>();
   private readonly typing$ = new Subject<TypingEvent>();
   private readonly error$ = new Subject<SocketError>();
 
@@ -61,6 +67,10 @@ export class WebSocketService {
 
     this.socket.on('receive_message', (msg: ChatMessage) => {
       this.message$.next(msg);
+    });
+
+    this.socket.on('active_users', (event: ActiveUsersEvent) => {
+      this.activeUsers$.next(event);
     });
 
     this.socket.on('user_joined', (event: UserEvent) => {
@@ -108,6 +118,10 @@ export class WebSocketService {
 
   onMessage(): Observable<ChatMessage> {
     return this.message$.asObservable();
+  }
+
+  onActiveUsers(): Observable<ActiveUsersEvent> {
+    return this.activeUsers$.asObservable();
   }
 
   onUserJoined(): Observable<UserEvent> {

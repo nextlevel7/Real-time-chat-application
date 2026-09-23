@@ -11,6 +11,18 @@ from app.rooms.service import require_member
 from app.users.model import User
 
 
+ROOM_ACTIVE_USERS: dict[str, set[str]] = {}
+SID_ROOMS: dict[str, set[str]] = {}
+SID_USER: dict[str, str] = {}
+
+
+def _is_user_in_room(username: str, room_id: str) -> bool:
+    return any(
+        room_id in rooms and SID_USER.get(sid) == username
+        for sid, rooms in SID_ROOMS.items()
+    )
+
+
 def register_socket_events(socketio):
     @socketio.on("connect")
     def handle_connect(auth=None):
@@ -30,13 +42,39 @@ def register_socket_events(socketio):
                 return False
             session["user_id"] = str(user.id)
             session["username"] = user.username
+            SID_USER[request.sid] = user.username
+            SID_ROOMS[request.sid] = set()
             return True
         except Exception:  # noqa: BLE001 - Reject socket connection if token is malformed or invalid
             return False
 
+    @socketio.on("disconnect")
+    def handle_disconnect():
+        username = SID_USER.pop(request.sid, session.get("username"))
+        rooms = SID_ROOMS.pop(request.sid, set())
+        for room_id in rooms:
+            if username and not _is_user_in_room(username, room_id):
+                if room_id in ROOM_ACTIVE_USERS:
+                    ROOM_ACTIVE_USERS[room_id].discard(username)
+                    if not ROOM_ACTIVE_USERS[room_id]:
+                        del ROOM_ACTIVE_USERS[room_id]
+                emit(
+                    "user_left",
+                    {"roomId": room_id, "username": username},
+                    to=room_id,
+                    include_self=False,
+                )
+                active_users = sorted(list(ROOM_ACTIVE_USERS.get(room_id, set())))
+                emit(
+                    "active_users",
+                    {"roomId": room_id, "users": active_users},
+                    to=room_id,
+                )
+
     @socketio.on("join_room")
     def handle_join_room(data):
         user_id = session.get("user_id")
+        username = session.get("username") or SID_USER.get(request.sid)
         room_id = (data or {}).get("roomId")
         if not user_id or not room_id:
             emit("error", {"code": "INVALID_REQUEST", "message": "roomId is required"})
@@ -52,25 +90,57 @@ def register_socket_events(socketio):
             emit("error", {"code": "INVALID_REQUEST", "message": "Invalid roomId"})
             return
 
-        join_room(str(room_uuid))
+        room_str = str(room_uuid)
+        join_room(room_str)
+
+        if room_str not in ROOM_ACTIVE_USERS:
+            ROOM_ACTIVE_USERS[room_str] = set()
+        if username:
+            ROOM_ACTIVE_USERS[room_str].add(username)
+
+        if request.sid in SID_ROOMS:
+            SID_ROOMS[request.sid].add(room_str)
+        else:
+            SID_ROOMS[request.sid] = {room_str}
+
         emit(
             "user_joined",
-            {"roomId": str(room_uuid), "username": session.get("username")},
-            to=str(room_uuid),
+            {"roomId": room_str, "username": username},
+            to=room_str,
             include_self=False,
+        )
+        active_users = sorted(list(ROOM_ACTIVE_USERS[room_str]))
+        emit(
+            "active_users",
+            {"roomId": room_str, "users": active_users},
+            to=room_str,
         )
 
     @socketio.on("leave_room")
     def handle_leave_room(data):
         room_id = (data or {}).get("roomId")
+        username = session.get("username") or SID_USER.get(request.sid)
         if room_id:
             leave_room(room_id)
-            emit(
-                "user_left",
-                {"roomId": room_id, "username": session.get("username")},
-                to=room_id,
-                include_self=False,
-            )
+            if request.sid in SID_ROOMS:
+                SID_ROOMS[request.sid].discard(room_id)
+            if username and not _is_user_in_room(username, room_id):
+                if room_id in ROOM_ACTIVE_USERS:
+                    ROOM_ACTIVE_USERS[room_id].discard(username)
+                    if not ROOM_ACTIVE_USERS[room_id]:
+                        del ROOM_ACTIVE_USERS[room_id]
+                emit(
+                    "user_left",
+                    {"roomId": room_id, "username": username},
+                    to=room_id,
+                    include_self=False,
+                )
+                active_users = sorted(list(ROOM_ACTIVE_USERS.get(room_id, set())))
+                emit(
+                    "active_users",
+                    {"roomId": room_id, "users": active_users},
+                    to=room_id,
+                )
 
     @socketio.on("send_message")
     def handle_send_message(data):
