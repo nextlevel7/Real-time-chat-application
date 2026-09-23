@@ -8,8 +8,8 @@ from app.extensions import db
 def app():
     test_config = {
         "TESTING": True,
-        "SECRET_KEY": "test-secret-key-for-assessment-testing",
-        "JWT_SECRET_KEY": "test-jwt-secret-key-for-assessment-testing",
+        "SECRET_KEY": "test-secret-key-at-least-32-bytes-long!",
+        "JWT_SECRET_KEY": "test-jwt-secret-key-at-least-32-bytes-long!",
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "SQLALCHEMY_TRACK_MODIFICATIONS": False,
     }
