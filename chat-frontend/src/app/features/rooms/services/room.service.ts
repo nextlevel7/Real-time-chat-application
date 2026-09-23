@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { CreateRoomPayload, Room, RoomMember } from '../models/room.models';
+import { ChatMessage } from '../models/message.models';
 
 @Injectable({
   providedIn: 'root',
@@ -89,5 +90,13 @@ export class RoomService {
 
   fetchMembers(roomId: string): Observable<{ members: RoomMember[] }> {
     return this.http.get<{ members: RoomMember[] }>(`/api/rooms/${roomId}/members`);
+  }
+
+  fetchMessages(roomId: string, limit = 50): Observable<{ messages: ChatMessage[] }> {
+    return this.http.get<{ messages: ChatMessage[] }>(`/api/rooms/${roomId}/messages?limit=${limit}`);
+  }
+
+  sendMessage(roomId: string, content: string): Observable<{ message: ChatMessage }> {
+    return this.http.post<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages`, { content });
   }
 }

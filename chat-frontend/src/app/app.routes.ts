@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/rooms/pages/room-list/room-list').then((m) => m.RoomList),
   },
   {
+    path: 'rooms/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/rooms/pages/chat-room/chat-room').then((m) => m.ChatRoom),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

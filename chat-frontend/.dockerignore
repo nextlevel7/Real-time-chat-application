@@ -1,0 +1,9 @@
+node_modules
+dist
+.angular
+.git
+.vscode
+.editorconfig
+.prettierrc
+README.md
+*.log

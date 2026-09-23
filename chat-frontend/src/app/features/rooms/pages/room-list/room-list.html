@@ -67,7 +67,7 @@
             </div>
             @if (room.isMember) {
               <mat-chip-set>
-                <mat-chip class="member-chip" highlighted>Member</mat-chip>
+                <mat-chip class="member-chip">Member</mat-chip>
               </mat-chip-set>
             } @else {
               <mat-chip-set>
@@ -78,6 +78,9 @@
 
           <mat-card-actions class="room-actions">
             @if (room.isMember) {
+              <button mat-flat-button color="primary" (click)="onOpenRoom(room.id)">
+                Open Chat
+              </button>
               <button mat-button color="warn" (click)="onLeave(room.id)">Leave</button>
             } @else {
               <button mat-flat-button color="primary" (click)="onJoin(room.id)">Join Room</button>

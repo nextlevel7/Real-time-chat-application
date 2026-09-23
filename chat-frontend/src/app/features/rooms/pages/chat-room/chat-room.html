@@ -1,0 +1,136 @@
+<mat-toolbar color="primary" class="chat-toolbar">
+  <button mat-button (click)="onBack()" class="back-btn">
+    &larr; Back to Rooms
+  </button>
+  <span class="room-title">{{ room()?.name || 'Chat Room' }}</span>
+  <span
+    class="connection-dot"
+    [class.online]="isConnected()"
+    [title]="isConnected() ? 'Live WebSocket Connected' : 'Connecting WebSocket...'"
+  ></span>
+  <span class="spacer"></span>
+  <button
+    mat-button
+    (click)="toggleParticipants()"
+    class="toggle-users-btn"
+    title="Toggle Participants Panel"
+  >
+    👥 {{ members().length }} Members ({{ activeUsers().length }} Active)
+  </button>
+  <button mat-stroked-button color="warn" (click)="onLeaveRoom()" class="leave-btn">
+    Leave
+  </button>
+</mat-toolbar>
+
+<div class="chat-container">
+  @if (errorMessage(); as err) {
+    <div class="alert alert-error">
+      {{ err }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Loading messages...</p>
+    </div>
+  } @else {
+    <div class="chat-body-layout">
+      <div class="chat-main-panel">
+        <div class="messages-panel" #messagesScroll>
+          @if (messages().length === 0) {
+            <div class="empty-messages">
+              <p>No messages yet in <strong>#{{ room()?.name }}</strong>.</p>
+              <p class="sub">Start the conversation below!</p>
+            </div>
+          } @else {
+            <div class="message-list">
+              @for (msg of messages(); track msg.id) {
+                <div
+                  class="message-wrapper"
+                  [class.own-message]="currentUser()?.id === msg.senderId"
+                  [class.new-incoming]="msg.isNew"
+                >
+                  <div class="message-bubble">
+                    <div class="message-header">
+                      @if (currentUser()?.id !== msg.senderId) {
+                        <span class="sender-name">{{ msg.senderUsername }}</span>
+                      }
+                      @if (msg.isNew) {
+                        <span class="new-pill">NEW</span>
+                      }
+                    </div>
+                    <p class="message-content">{{ msg.content }}</p>
+                    <span class="message-time">
+                      {{ msg.createdAt | date: 'shortTime' }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (typingText(); as typing) {
+          <div class="typing-indicator">
+            <span class="typing-dot-pulse"></span>
+            <span class="typing-label">{{ typing }}</span>
+          </div>
+        }
+
+        <div class="composer-container">
+          <form [formGroup]="messageForm" (ngSubmit)="onSendMessage()" class="composer-form">
+            <mat-form-field appearance="outline" class="message-input">
+              <mat-label>Type a message...</mat-label>
+              <input
+                matInput
+                formControlName="content"
+                (input)="onTypingInput()"
+                placeholder="Type your message..."
+                autocomplete="off"
+              />
+            </mat-form-field>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              class="send-btn"
+              [disabled]="messageForm.invalid || isSending()"
+            >
+              @if (isSending()) {
+                Sending...
+              } @else {
+                Send
+              }
+            </button>
+          </form>
+        </div>
+      </div>
+
+      @if (showParticipants()) {
+        <aside class="participants-sidebar">
+          <div class="participants-header">
+            <h4>Active Participants</h4>
+            <span class="active-badge">{{ activeUsers().length }} online</span>
+          </div>
+          <div class="participants-list">
+            @for (member of members(); track member.id) {
+              <div class="participant-item">
+                <span
+                  class="status-indicator"
+                  [class.active]="isUserActive(member.username)"
+                ></span>
+                <span class="participant-name">
+                  {{ member.username }}
+                  @if (member.username === currentUser()?.username) {
+                    <span class="you-tag">(You)</span>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+  }
+</div>

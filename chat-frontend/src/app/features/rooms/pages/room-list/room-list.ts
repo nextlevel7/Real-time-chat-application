@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -8,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { RoomService } from '../../services/room.service';
 
@@ -30,6 +32,8 @@ import { RoomService } from '../../services/room.service';
 export class RoomList implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly roomService = inject(RoomService);
+  private readonly router = inject(Router);
+  private readonly wsService = inject(WebSocketService);
 
   readonly currentUser = this.authService.currentUser;
   readonly rooms = this.roomService.rooms;
@@ -71,7 +75,12 @@ export class RoomList implements OnInit {
     this.roomService.leaveRoom(roomId).subscribe();
   }
 
+  onOpenRoom(roomId: string): void {
+    this.router.navigate(['/rooms', roomId]);
+  }
+
   onLogout(): void {
+    this.wsService.disconnect();
     this.authService.logout();
   }
 }
